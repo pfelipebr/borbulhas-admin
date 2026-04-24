@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/pfelipebr/borbulhas-admin-frontend:latest
+          image: us-central1-docker.pkg.dev/borbulhas-de-cacau/borbulhas-admin/frontend:latest
           ports:
             - containerPort: 80
           resources:

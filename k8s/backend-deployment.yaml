@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/pfelipebr/borbulhas-admin-backend:latest
+          image: us-central1-docker.pkg.dev/borbulhas-de-cacau/borbulhas-admin/backend:latest
           ports:
             - containerPort: 3000
           env:
