@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: borbulhas-admin
+  labels:
+    app.kubernetes.io/name: borbulhas-admin

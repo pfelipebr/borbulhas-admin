@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Borbulhas de Cacau Admin</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="login-page">
+
+  <div class="login-container">
+    <div class="login-card">
+
+      <div class="login-header">
+        <span class="login-icon">🍷</span>
+        <h1>Borbulhas de Cacau</h1>
+        <p class="subtitle">Painel Administrativo</p>
+      </div>
+
+      <div class="login-body">
+        <h2>Acessar o sistema</h2>
+
+        <div class="error-message" id="errorMsg" role="alert"></div>
+
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label for="email">E-mail</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-control"
+              placeholder="admin@borbulhas.com.br"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Senha</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-control"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg login-btn" id="loginBtn">
+            Entrar
+          </button>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        &copy; 2025 Borbulhas de Cacau · Todos os direitos reservados
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

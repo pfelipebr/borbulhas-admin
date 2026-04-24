@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produtos — Borbulhas de Cacau Admin</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="admin-layout">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="admin.html" class="navbar-brand">
+      <span class="brand-icon">🍷</span>
+      <div>
+        <div class="brand-name">Borbulhas de Cacau</div>
+        <div class="brand-badge">Admin</div>
+      </div>
+    </a>
+
+    <ul class="navbar-nav">
+      <li><a href="admin.html" class="active">Produtos</a></li>
+    </ul>
+
+    <div class="navbar-actions">
+      <span class="user-info" id="userEmail"></span>
+      <button class="btn-logout" id="logoutBtn">Sair</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+
+    <!-- Stats -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-card">
+        <div class="stat-label">Total</div>
+        <div class="stat-value" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ativos</div>
+        <div class="stat-value" id="statAtivo">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Vinhos</div>
+        <div class="stat-value" id="statVinhos">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Chocolates</div>
+        <div class="stat-value" id="statChocolates">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Presentes</div>
+        <div class="stat-value" id="statPresentes">—</div>
+      </div>
+    </div>
+
+    <!-- Section Header -->
+    <div class="section-header">
+      <h2 class="section-title">Produtos</h2>
+      <button class="btn btn-primary" id="newProductBtn">
+        + Novo Produto
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filter-search">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="form-control"
+          id="searchInput"
+          placeholder="Buscar por nome ou descrição…"
+        />
+      </div>
+
+      <select class="form-control filter-select" id="categoriaFilter">
+        <option value="">Todas as categorias</option>
+        <option value="vinhos">Vinhos</option>
+        <option value="chocolates">Chocolates</option>
+        <option value="presentes">Presentes</option>
+      </select>
+
+      <label class="toggle-filter">
+        <input type="checkbox" id="apenasAtivos" checked />
+        <span>Apenas ativos</span>
+      </label>
+
+      <button class="btn btn-secondary btn-sm" id="clearFiltersBtn">Limpar</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <table id="productsTable">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Categoria</th>
+            <th>Subcategoria</th>
+            <th>Preço</th>
+            <th>Destaque</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="productsBody">
+          <tr class="loading-row">
+            <td colspan="7">
+              <span class="spinner"></span> Carregando produtos…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination" style="display:none;">
+        <div class="pagination-info" id="paginationInfo"></div>
+        <div class="pagination-controls" id="paginationControls"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Product Modal ───────────────────────────────────────── -->
+  <div class="modal-overlay" id="productModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Novo Produto</h3>
+        <button class="modal-close" id="modalClose" aria-label="Fechar">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="productForm" novalidate>
+
+          <!-- Hidden -->
+          <input type="hidden" id="productId" />
+          <input type="hidden" id="productIdOriginal" />
+
+          <!-- Basic Info -->
+          <div class="form-section">
+            <div class="form-section-title">📋 Informações Básicas</div>
+
+            <div class="form-row cols-2">
+              <div class="form-group">
+                <label for="fNome">Nome *</label>
+                <input type="text" id="fNome" class="form-control" placeholder="Ex: Espumante Moscatel" required />
+              </div>
+              <div class="form-group">
+                <label for="fCategoria">Categoria *</label>
+                <select id="fCategoria" class="form-control" required>
+                  <option value="">Selecionar…</option>
+                  <option value="vinhos">Vinhos</option>
+                  <option value="chocolates">Chocolates</option>
+                  <option value="presentes">Presentes</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row cols-3">
+              <div class="form-group">
+                <label for="fSlug">ID / Slug *</label>
+                <input type="text" id="fSlug" class="form-control" placeholder="gerado automaticamente" />
+              </div>
+              <div class="form-group">
+                <label for="fSubcategoria">Subcategoria</label>
+                <input type="text" id="fSubcategoria" class="form-control" placeholder="Ex: Espumante" />
+              </div>
+              <div class="form-group">
+                <label for="fOrdem">Ordem</label>
+                <input type="number" id="fOrdem" class="form-control" placeholder="1" min="0" />
+              </div>
+            </div>
+
+            <div class="form-row cols-2">
+              <div class="form-group">
+                <label for="fPreco">Preço (R$) *</label>
+                <input type="number" id="fPreco" class="form-control" placeholder="0.00" step="0.01" min="0" required />
+              </div>
+              <div class="form-group">
+                <label for="fProdutor">Produtor</label>
+                <input type="text" id="fProdutor" class="form-control" placeholder="Nome do produtor" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Descriptions -->
+          <div class="form-section">
+            <div class="form-section-title">📝 Descrições</div>
+            <div class="form-group">
+              <label for="fDescricao">Descrição</label>
+              <textarea id="fDescricao" class="form-control" rows="3" placeholder="Descrição geral do produto…"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="fNotas">Notas</label>
+              <textarea id="fNotas" class="form-control" rows="2" placeholder="Notas de degustação, aroma…"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="fHarmonizacao">Harmonização</label>
+              <textarea id="fHarmonizacao" class="form-control" rows="2" placeholder="Sugestões de harmonização…"></textarea>
+            </div>
+          </div>
+
+          <!-- Media & Flags -->
+          <div class="form-section">
+            <div class="form-section-title">🖼️ Mídia e Configurações</div>
+            <div class="form-group">
+              <label for="fImagem">Caminho da Imagem</label>
+              <input type="text" id="fImagem" class="form-control" placeholder="/images/produto.jpg" />
+            </div>
+            <div class="form-row cols-2">
+              <label class="form-check">
+                <input type="checkbox" id="fDestaque" />
+                <label for="fDestaque">⭐ Produto em Destaque</label>
+              </label>
+              <label class="form-check">
+                <input type="checkbox" id="fAtivo" checked />
+                <label for="fAtivo">✅ Produto Ativo</label>
+              </label>
+            </div>
+          </div>
+
+          <!-- Wine Fields -->
+          <div class="form-section" id="wineSection">
+            <div class="form-section-title">🍷 Informações do Vinho</div>
+            <div class="category-fields" id="wineFields">
+              <div class="form-row cols-3">
+                <div class="form-group">
+                  <label for="fUva">Uva</label>
+                  <input type="text" id="fUva" class="form-control" placeholder="Ex: Moscato" />
+                </div>
+                <div class="form-group">
+                  <label for="fSafra">Safra</label>
+                  <input type="text" id="fSafra" class="form-control" placeholder="Ex: 2022" />
+                </div>
+                <div class="form-group">
+                  <label for="fTeor">Teor Alcoólico</label>
+                  <input type="text" id="fTeor" class="form-control" placeholder="Ex: 7,5%" />
+                </div>
+              </div>
+              <div class="form-row cols-3">
+                <div class="form-group">
+                  <label for="fVolume">Volume</label>
+                  <input type="text" id="fVolume" class="form-control" placeholder="Ex: 750ml" />
+                </div>
+                <div class="form-group">
+                  <label for="fRegiao">Região</label>
+                  <input type="text" id="fRegiao" class="form-control" placeholder="Ex: Serra Gaúcha" />
+                </div>
+                <div class="form-group">
+                  <label for="fTemperatura">Temperatura de Serviço</label>
+                  <input type="text" id="fTemperatura" class="form-control" placeholder="Ex: 6-8°C" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="fGuarda">Guarda</label>
+                <input type="text" id="fGuarda" class="form-control" placeholder="Ex: 2-5 anos" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Chocolate Fields -->
+          <div class="form-section" id="chocolateSection">
+            <div class="form-section-title">🍫 Informações do Chocolate</div>
+            <div class="category-fields" id="chocolateFields">
+              <div class="form-row cols-3">
+                <div class="form-group">
+                  <label for="fPeso">Peso</label>
+                  <input type="text" id="fPeso" class="form-control" placeholder="Ex: 100g" />
+                </div>
+                <div class="form-group">
+                  <label for="fCacau">Teor de Cacau</label>
+                  <input type="text" id="fCacau" class="form-control" placeholder="Ex: 70%" />
+                </div>
+                <div class="form-group">
+                  <label for="fOrigem">Origem do Cacau</label>
+                  <input type="text" id="fOrigem" class="form-control" placeholder="Ex: Bahia, Brasil" />
+                </div>
+              </div>
+              <div class="form-row cols-2">
+                <label class="form-check">
+                  <input type="checkbox" id="fAlcool" />
+                  <label for="fAlcool">🍷 Contém Álcool</label>
+                </label>
+              </div>
+              <div class="form-group mt-2">
+                <label>Alérgenos</label>
+                <div class="alergenos-grid">
+                  <label class="form-check">
+                    <input type="checkbox" class="alergeno-check" value="leite" />
+                    <label>🥛 Leite</label>
+                  </label>
+                  <label class="form-check">
+                    <input type="checkbox" class="alergeno-check" value="soja" />
+                    <label>🌿 Soja</label>
+                  </label>
+                  <label class="form-check">
+                    <input type="checkbox" class="alergeno-check" value="amendoim" />
+                    <label>🥜 Amendoim</label>
+                  </label>
+                  <label class="form-check">
+                    <input type="checkbox" class="alergeno-check" value="nozes" />
+                    <label>🌰 Nozes</label>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="modalCancelBtn">Cancelar</button>
+        <button class="btn btn-primary" id="modalSaveBtn">
+          Salvar Produto
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/products.js"></script>
+</body>
+</html>

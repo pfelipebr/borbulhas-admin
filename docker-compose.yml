@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: borbulhas-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       borbulhas_admin
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d borbulhas_admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: borbulhas-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT:         3000
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/borbulhas_admin
+      JWT_SECRET:   dev-secret-change-in-production
+      NODE_ENV:     development
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source for hot reload (dev only)
+      - ./backend/src:/app/src
+      - ./backend/index.js:/app/index.js
+    command: ["node", "index.js"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: borbulhas-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: borbulhas-network
