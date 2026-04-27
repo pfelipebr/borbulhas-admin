@@ -1,200 +1,108 @@
-# Borbulhas de Cacau — Admin Panel
+# Borbulhas de Cacau — Admin
 
-Admin panel for managing products in the Borbulhas de Cacau wine and chocolate e-commerce store.
+Painel de administração de produtos. Usa o Google Sheets como banco de dados.  
+O script `sync-products.js` lê a planilha e regera os arquivos JS do site.
 
-## Tech Stack
+## Como funciona
 
-- **Backend**: Node.js + Express (REST API)
-- **Database**: PostgreSQL 15
-- **Auth**: JWT + bcrypt
-- **Frontend**: Vanilla HTML/CSS/JS (nginx)
-- **Dev**: docker-compose
-- **Production**: Kubernetes
+```
+Google Sheets  →  sync-products.js  →  js/data-*.js  →  Site Firebase
+```
+
+1. Você edita os produtos diretamente na planilha do Google Sheets
+2. Clica em **Sincronizar** no painel admin (ou o GitHub Actions roda automaticamente à meia-dia)
+3. O script lê a planilha, regera os arquivos `js/data-vinhos.js`, `js/data-chocolates.js` e `js/data-presentes.js` no repo `borbulhas-web`
+4. O Firebase Hosting publica automaticamente via CI
 
 ---
 
-## Local Development
+## Estrutura da Planilha
 
-### Prerequisites
+A planilha deve ser **pública** (Arquivo → Compartilhar → Qualquer pessoa com o link pode **visualizar**).
 
-- Docker and Docker Compose installed
+Crie uma planilha com **3 abas** com os nomes exatos:
 
-### Start all services
+### Aba `vinhos`
 
-```bash
-cd /Users/pfelipe/Documents/borbulhas-admin
-docker-compose up --build
-```
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | texto | Slug único (ex: `espumante-moscatel-jolimont`) |
+| `ordem` | número | Ordem de exibição |
+| `nome` | texto | Nome do produto |
+| `subcategoria` | texto | Ex: `Espumantes`, `Tintos`, `Brancos` |
+| `preco` | número | Preço em R$ (ex: `119.00`) |
+| `imagem` | texto | Caminho da imagem (ex: `img/jolimont/moscatel.png`) |
+| `uva` | texto | Variedade(s) de uva |
+| `safra` | texto | Ano da safra (ex: `2023`) |
+| `teor` | texto | Teor alcoólico (ex: `7,5%`) |
+| `volume` | texto | Volume (ex: `750ml`) |
+| `regiao` | texto | Região produtora (ex: `Serra Gaúcha`) |
+| `temperatura` | texto | Temperatura de serviço (ex: `6–8°C`) |
+| `guarda` | texto | Potencial de guarda (ex: `até 8 anos`) — deixe em branco se não aplicável |
+| `descricao` | texto | Descrição curta |
+| `notas` | texto | Notas de degustação |
+| `harmonizacao` | texto | Harmonizações sugeridas |
+| `destaque` | boolean | `true` ou vazio |
 
-Services will be available at:
-- **Frontend**: http://localhost:8080
-- **Backend API**: http://localhost:3000
-- **PostgreSQL**: localhost:5432
+### Aba `chocolates`
 
-### First-time admin login
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | texto | Slug único |
+| `ordem` | número | Ordem de exibição |
+| `nome` | texto | Nome do produto |
+| `subcategoria` | texto | Ex: `Barras`, `Trufas`, `Alfajores` |
+| `preco` | número | Preço em R$ |
+| `imagem` | texto | Caminho da imagem |
+| `peso` | texto | Peso (ex: `100g`) |
+| `cacau` | texto | % de cacau (ex: `73%`) — vazio se não aplicável |
+| `origem` | texto | Ex: `Gramado/RS` |
+| `alcool` | boolean | `true` se contém álcool |
+| `alergenos` | texto | Lista separada por vírgula: `leite, soja, nozes` |
+| `descricao` | texto | Descrição |
+| `notas` | texto | Notas de sabor |
+| `harmonizacao` | texto | Harmonizações |
+| `destaque` | boolean | `true` ou vazio |
 
-On first startup, the backend automatically creates a default admin user:
+### Aba `presentes`
 
-- **Email**: `admin@borbulhas.com.br`
-- **Password**: `changeme123`
-
-> **Important**: Change this password immediately after first login!
-
-### Install backend dependencies (for local dev without Docker)
-
-```bash
-cd backend
-cp .env.example .env
-# Edit .env with your local values
-npm install
-npm run dev
-```
-
----
-
-## Environment Variables
-
-| Variable       | Description                              | Default                                                          |
-|----------------|------------------------------------------|------------------------------------------------------------------|
-| `PORT`         | Port the backend API listens on          | `3000`                                                           |
-| `DATABASE_URL` | PostgreSQL connection string             | `postgresql://postgres:password@localhost:5432/borbulhas_admin` |
-| `JWT_SECRET`   | Secret key for signing JWT tokens        | *(required — set a long random string)*                          |
-| `NODE_ENV`     | Environment (`development`/`production`) | `development`                                                    |
-| `CORS_ORIGIN`  | Allowed CORS origin                      | `*`                                                              |
-
----
-
-## API Endpoints
-
-### Health
-
-| Method | Path         | Auth | Description         |
-|--------|--------------|------|---------------------|
-| GET    | /api/health  | No   | Health check        |
-
-### Auth
-
-| Method | Path                 | Auth | Description                                  |
-|--------|----------------------|------|----------------------------------------------|
-| POST   | /api/auth/login      | No   | Login — returns JWT                          |
-| POST   | /api/auth/register   | No   | Register first admin (only if none exists)   |
-| GET    | /api/auth/me         | Yes  | Get current user info                        |
-
-**Login request body:**
-```json
-{ "email": "admin@borbulhas.com.br", "password": "changeme123" }
-```
-
-**Login response:**
-```json
-{ "token": "eyJ...", "user": { "id": 1, "email": "admin@borbulhas.com.br" } }
-```
-
-### Products (all require `Authorization: Bearer <token>`)
-
-| Method | Path                         | Description                             |
-|--------|------------------------------|-----------------------------------------|
-| GET    | /api/products                | List products (with filters/pagination) |
-| GET    | /api/products/:id            | Get single product                      |
-| POST   | /api/products                | Create product                          |
-| PUT    | /api/products/:id            | Update product                          |
-| DELETE | /api/products/:id            | Soft delete (set ativo=false)           |
-| PATCH  | /api/products/:id/toggle     | Toggle ativo field                      |
-
-**GET /api/products query parameters:**
-
-| Param        | Description                         |
-|--------------|-------------------------------------|
-| `categoria`  | Filter by `vinhos`, `chocolates`, `presentes` |
-| `subcategoria` | Filter by subcategoria            |
-| `destaque`   | Filter by `true`/`false`            |
-| `ativo`      | Filter by `true`/`false`            |
-| `search`     | Search in nome and descricao        |
-| `page`       | Page number (default: 1)            |
-| `limit`      | Items per page (default: 20, max: 100) |
+Mesmas colunas que `chocolates`.
 
 ---
 
-## Kubernetes Deployment
+## Configurar o Sync Automático
 
-### Prerequisites
+### 1. Adicionar o ID da planilha como Secret no GitHub
 
-- A Kubernetes cluster (e.g. k3s, EKS, GKE, AKS)
-- `kubectl` configured
-- nginx ingress controller installed
-- cert-manager installed (for TLS)
+No repositório `borbulhas-web`:
 
-### Create secrets
+1. Vá em **Settings → Secrets and variables → Actions**
+2. Clique em **New repository secret**
+3. Nome: `GOOGLE_SHEET_ID`
+4. Valor: o ID da planilha (parte da URL: `https://docs.google.com/spreadsheets/d/**ID**/edit`)
 
-```bash
-# PostgreSQL secret
-kubectl create secret generic postgres-secret \
-  --namespace borbulhas-admin \
-  --from-literal=POSTGRES_DB=borbulhas_admin \
-  --from-literal=POSTGRES_USER=postgres \
-  --from-literal=POSTGRES_PASSWORD=<strong-password>
-
-# Backend secret
-kubectl create secret generic backend-secret \
-  --namespace borbulhas-admin \
-  --from-literal=DATABASE_URL=postgresql://postgres:<strong-password>@postgres:5432/borbulhas_admin \
-  --from-literal=JWT_SECRET=<long-random-secret>
-```
-
-### Apply manifests
+### 2. Rodar o sync manualmente
 
 ```bash
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/postgres-pvc.yaml
-kubectl apply -f k8s/postgres-deployment.yaml
-kubectl apply -f k8s/postgres-service.yaml
-kubectl apply -f k8s/backend-deployment.yaml
-kubectl apply -f k8s/backend-service.yaml
-kubectl apply -f k8s/frontend-deployment.yaml
-kubectl apply -f k8s/frontend-service.yaml
-kubectl apply -f k8s/ingress.yaml
+SHEET_ID=<id_da_planilha> node scripts/sync-products.js
 ```
 
-Or apply everything at once:
+### 3. Sync automático via GitHub Actions
 
-```bash
-kubectl apply -f k8s/
-```
-
-### Build and push Docker images
-
-```bash
-# Backend
-docker build -t ghcr.io/pfelipebr/borbulhas-admin-backend:latest ./backend
-docker push ghcr.io/pfelipebr/borbulhas-admin-backend:latest
-
-# Frontend
-docker build -t ghcr.io/pfelipebr/borbulhas-admin-frontend:latest ./frontend
-docker push ghcr.io/pfelipebr/borbulhas-admin-frontend:latest
-```
-
-### Check deployment status
-
-```bash
-kubectl get all -n borbulhas-admin
-kubectl logs -n borbulhas-admin deployment/backend
-```
+O workflow `.github/workflows/sync-products.yml` no repo `borbulhas-web`:
+- Roda **automaticamente todo dia ao meio-dia** (UTC)
+- Pode ser disparado manualmente em **Actions → Sincronizar Produtos → Run workflow**
+- Pode ser disparado pelo **botão Sincronizar** no painel admin (requer GitHub Token)
 
 ---
 
-## Product Categories
+## Painel Admin
 
-| Category     | Description      |
-|--------------|------------------|
-| `vinhos`     | Wines            |
-| `chocolates` | Chocolates       |
-| `presentes`  | Gift kits        |
+Abra `index.html` localmente ou hospede em qualquer servidor estático.
 
----
+**Configure:**
+- **ID da Planilha**: o ID do Google Sheets
+- **GitHub Token**: token com scope `workflow` para disparar o sync pelo painel
+  - Gerar em: https://github.com/settings/tokens/new?scopes=workflow
 
-## Security Notes
-
-- The default admin credentials (`admin@borbulhas.com.br` / `changeme123`) are auto-created only if no admin exists. Change them immediately.
-- Always use a strong, random `JWT_SECRET` in production (at least 64 characters).
-- The `DELETE /api/products/:id` endpoint performs a soft delete (sets `ativo=false`) — no data is permanently lost.
-- All monetary values are stored as `DECIMAL(10,2)` and displayed as BRL.
+As configurações são salvas no `localStorage` do browser.

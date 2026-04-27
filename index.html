@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Borbulhas de Cacau</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --burgundy:  #4a0e2e;
+      --burgundy2: #6b1a44;
+      --gold:      #c9a84c;
+      --cream:     #f9f5f0;
+      --white:     #ffffff;
+      --gray-100:  #f3f3f3;
+      --gray-200:  #e8e8e8;
+      --gray-500:  #888;
+      --gray-700:  #444;
+      --green:     #2d7a3a;
+      --red:       #b91c1c;
+      --radius:    8px;
+      --shadow:    0 2px 12px rgba(0,0,0,.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--gray-700);
+      min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    header {
+      background: var(--burgundy);
+      color: var(--white);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .brand span { opacity: .55; font-weight: 400; font-size: 1rem; }
+    .header-actions { display: flex; gap: .75rem; align-items: center; }
+
+    /* ── Buttons ──────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .45rem 1rem;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-size: .85rem;
+      font-weight: 500;
+      font-family: inherit;
+      transition: opacity .15s, transform .1s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-gold    { background: var(--gold);    color: #1a0a00; }
+    .btn-outline { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,.4); }
+    .btn-outline:hover { background: rgba(255,255,255,.1); }
+    .btn-primary { background: var(--burgundy); color: var(--white); }
+    .btn-primary:hover { background: var(--burgundy2); }
+    .btn-sm { padding: .3rem .75rem; font-size: .8rem; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Main layout ──────────────────────────────────────────── */
+    main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* ── Setup card ───────────────────────────────────────────── */
+    #setup-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    #setup-card h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      color: var(--burgundy);
+      margin-bottom: 1.25rem;
+    }
+    .setup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 1rem;
+      align-items: end;
+    }
+    @media (max-width: 700px) {
+      .setup-grid { grid-template-columns: 1fr; }
+    }
+    label { display: block; font-size: .8rem; font-weight: 500; margin-bottom: .35rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: .04em; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: .55rem .85rem;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-size: .9rem;
+      font-family: inherit;
+      color: var(--gray-700);
+      background: var(--gray-100);
+      transition: border .15s;
+    }
+    input:focus { outline: none; border-color: var(--burgundy); background: var(--white); }
+    .help-link { font-size: .75rem; color: var(--burgundy); text-decoration: none; display: inline-block; margin-top: .4rem; }
+    .help-link:hover { text-decoration: underline; }
+
+    /* ── Stats bar ────────────────────────────────────────────── */
+    .stats {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .stat {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem 1.5rem;
+      flex: 1;
+      min-width: 130px;
+    }
+    .stat-value { font-size: 2rem; font-family: 'Cormorant Garamond', serif; color: var(--burgundy); font-weight: 600; }
+    .stat-label { font-size: .75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: .05em; margin-top: .15rem; }
+
+    /* ── Toolbar ──────────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .tabs { display: flex; gap: .25rem; }
+    .tab {
+      padding: .45rem 1.1rem;
+      border-radius: 20px;
+      border: 1px solid var(--gray-200);
+      background: var(--white);
+      cursor: pointer;
+      font-size: .85rem;
+      font-family: inherit;
+      color: var(--gray-700);
+      transition: all .15s;
+    }
+    .tab.active {
+      background: var(--burgundy);
+      color: var(--white);
+      border-color: var(--burgundy);
+    }
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-wrap input {
+      width: 100%;
+      padding: .5rem .85rem .5rem 2.25rem;
+      border: 1px solid var(--gray-200);
+      border-radius: 20px;
+      font-size: .875rem;
+      font-family: inherit;
+      background: var(--white);
+    }
+    .search-icon {
+      position: absolute;
+      left: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-500);
+      font-size: .85rem;
+      pointer-events: none;
+    }
+
+    /* ── Table ────────────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    thead { background: var(--burgundy); color: var(--white); }
+    th { padding: .75rem 1rem; text-align: left; font-weight: 500; font-size: .8rem; letter-spacing: .03em; white-space: nowrap; }
+    td { padding: .65rem 1rem; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #faf6f2; }
+    .td-img img { width: 44px; height: 44px; object-fit: contain; border-radius: 4px; background: var(--gray-100); }
+    .td-nome strong { display: block; font-weight: 500; }
+    .td-nome small { color: var(--gray-500); font-size: .78rem; }
+    .badge {
+      display: inline-block;
+      padding: .2rem .6rem;
+      border-radius: 12px;
+      font-size: .75rem;
+      font-weight: 500;
+    }
+    .badge-sub   { background: #f0e8f5; color: #6b1a44; }
+    .badge-star  { background: #fef3c7; color: #92400e; }
+    .td-price    { font-weight: 600; color: var(--burgundy); white-space: nowrap; }
+
+    /* ── Empty / loading ──────────────────────────────────────── */
+    .state-box {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--gray-500);
+    }
+    .state-box .icon { font-size: 2.5rem; margin-bottom: .75rem; }
+    .state-box p { font-size: .95rem; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--burgundy);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--gray-700);
+      color: var(--white);
+      padding: .75rem 1.5rem;
+      border-radius: 24px;
+      font-size: .875rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s, transform .25s;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    #toast.success { background: var(--green); }
+    #toast.error   { background: var(--red); }
+
+    /* ── Sync status ──────────────────────────────────────────── */
+    #sync-status {
+      font-size: .8rem;
+      color: var(--gray-500);
+      padding: .35rem .75rem;
+      border-radius: 12px;
+      background: var(--gray-100);
+    }
+    #sync-status.running { color: var(--burgundy); background: #f5eaf1; }
+    #sync-status.ok      { color: var(--green);    background: #ecfdf3; }
+    #sync-status.fail    { color: var(--red);      background: #fef2f2; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    🍾 Borbulhas de Cacau <span>/ Admin</span>
+  </div>
+  <div class="header-actions">
+    <span id="sync-status">—</span>
+    <a id="btn-sheet" href="#" target="_blank" class="btn btn-outline btn-sm">↗ Planilha</a>
+    <button id="btn-sync" class="btn btn-gold btn-sm" onclick="triggerSync()">⟳ Sincronizar</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- Setup -->
+  <div id="setup-card">
+    <h2>Configuração</h2>
+    <div class="setup-grid">
+      <div>
+        <label for="inp-sheet">ID da Planilha Google Sheets</label>
+        <input type="text" id="inp-sheet" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
+        <a class="help-link" href="https://support.google.com/docs/answer/183965" target="_blank">Como encontrar o ID? ↗</a>
+      </div>
+      <div>
+        <label for="inp-token">GitHub Token <small style="text-transform:none;letter-spacing:0">(para disparar o sync)</small></label>
+        <input type="password" id="inp-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <a class="help-link" href="https://github.com/settings/tokens/new?scopes=workflow&description=borbulhas-admin" target="_blank">Gerar token com scope "workflow" ↗</a>
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-label">Total de produtos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-vinhos">—</div>
+      <div class="stat-label">Vinhos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-chocolates">—</div>
+      <div class="stat-label">Chocolates</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-presentes">—</div>
+      <div class="stat-label">Kits</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-destaques">—</div>
+      <div class="stat-label">Destaques</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="tabs">
+      <button class="tab active" data-cat="todos" onclick="setTab(this)">Todos</button>
+      <button class="tab" data-cat="vinhos" onclick="setTab(this)">Vinhos</button>
+      <button class="tab" data-cat="chocolates" onclick="setTab(this)">Chocolates</button>
+      <button class="tab" data-cat="presentes" onclick="setTab(this)">Kits</button>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search" placeholder="Buscar produto…" oninput="renderTable()">
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="loadProducts()">↻ Recarregar</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" id="table-wrap">
+    <div class="state-box">
+      <div class="icon">📋</div>
+      <p>Configure o ID da planilha acima e clique em <strong>Salvar</strong>.</p>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let allProducts = [];
+let currentCat  = 'todos';
+
+const REPO_OWNER = 'pfelipebr';
+const REPO_NAME  = 'borbulhas-web';
+const WORKFLOW   = 'sync-products.yml';
+
+// ---------------------------------------------------------------------------
+// Config (localStorage)
+// ---------------------------------------------------------------------------
+function saveConfig() {
+  const sheetId = document.getElementById('inp-sheet').value.trim();
+  const token   = document.getElementById('inp-token').value.trim();
+  if (!sheetId) { toast('Informe o ID da planilha.', 'error'); return; }
+  localStorage.setItem('bx_sheet_id', sheetId);
+  if (token) localStorage.setItem('bx_gh_token', token);
+  toast('Configuração salva!', 'success');
+  updateSheetLink();
+  loadProducts();
+}
+
+function loadConfig() {
+  const sheetId = localStorage.getItem('bx_sheet_id') || '';
+  const token   = localStorage.getItem('bx_gh_token') || '';
+  document.getElementById('inp-sheet').value = sheetId;
+  document.getElementById('inp-token').value = token ? '••••••••••••••••' : '';
+  updateSheetLink();
+}
+
+function getSheetId()  { return localStorage.getItem('bx_sheet_id') || ''; }
+function getGhToken()  { return localStorage.getItem('bx_gh_token') || ''; }
+
+function updateSheetLink() {
+  const id = getSheetId();
+  const el = document.getElementById('btn-sheet');
+  if (id) {
+    el.href = `https://docs.google.com/spreadsheets/d/${id}/edit`;
+  } else {
+    el.href = '#';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Fetch produtos do Google Sheets (gviz/tq — sem API key, leitura pública)
+// ---------------------------------------------------------------------------
+async function fetchTab(sheetName, categoria) {
+  const id  = getSheetId();
+  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const res  = await fetch(url);
+  const text = await res.text();
+  // Remove o wrapper JSONP: /*O_o*/google.visualization.Query.setResponse({...});
+  const json = JSON.parse(text.replace(/^[^{]+/, '').replace(/\);?\s*$/, ''));
+  if (json.status !== 'ok') throw new Error(`Erro na aba "${sheetName}"`);
+
+  const table = json.table;
+  const headers = table.cols.map(c => c.label.toLowerCase().trim());
+
+  return table.rows.map(row => {
+    const obj = { categoria };
+    headers.forEach((h, i) => {
+      const cell = row.c[i];
+      obj[h] = cell ? (cell.v ?? cell.f ?? '') : '';
+    });
+    return obj;
+  }).filter(r => r.id);
+}
+
+async function loadProducts() {
+  const id = getSheetId();
+  if (!id) return;
+
+  setLoading();
+  try {
+    const [vinhos, chocolates, presentes] = await Promise.all([
+      fetchTab('vinhos',     'vinhos'),
+      fetchTab('chocolates', 'chocolates'),
+      fetchTab('presentes',  'presentes'),
+    ]);
+
+    allProducts = [...vinhos, ...chocolates, ...presentes];
+    updateStats(vinhos.length, chocolates.length, presentes.length);
+    renderTable();
+  } catch (err) {
+    setError(err.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Stats
+// ---------------------------------------------------------------------------
+function updateStats(nv, nc, np) {
+  const total = nv + nc + np;
+  const dest  = allProducts.filter(p => p.destaque === true || p.destaque === 'TRUE' || p.destaque === 'true').length;
+  document.getElementById('stat-total').textContent      = total;
+  document.getElementById('stat-vinhos').textContent     = nv;
+  document.getElementById('stat-chocolates').textContent = nc;
+  document.getElementById('stat-presentes').textContent  = np;
+  document.getElementById('stat-destaques').textContent  = dest;
+}
+
+// ---------------------------------------------------------------------------
+// Table
+// ---------------------------------------------------------------------------
+function setTab(btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  renderTable();
+}
+
+function fmtPrice(v) {
+  const n = parseFloat(String(v).replace(',', '.'));
+  return isNaN(n) ? '—' : 'R$ ' + n.toFixed(2).replace('.', ',');
+}
+
+function renderTable() {
+  const search = document.getElementById('search').value.toLowerCase();
+
+  let rows = allProducts.filter(p => {
+    if (currentCat !== 'todos' && p.categoria !== currentCat) return false;
+    if (search) {
+      const hay = [p.nome, p.subcategoria, p.id, p.descricao].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  if (rows.length === 0) {
+    document.getElementById('table-wrap').innerHTML = `
+      <div class="state-box">
+        <div class="icon">🔍</div>
+        <p>Nenhum produto encontrado.</p>
+      </div>`;
+    return;
+  }
+
+  const colsComum = `
+    <th>Imagem</th>
+    <th>Produto</th>
+    <th>Subcategoria</th>
+    <th>Preço</th>
+    <th>Destaque</th>`;
+
+  const extraHeaders = currentCat === 'vinhos'
+    ? '<th>Uva</th><th>Safra</th><th>Teor</th>'
+    : currentCat === 'chocolates' || currentCat === 'presentes'
+      ? '<th>Peso</th><th>Cacau</th><th>Alérgenos</th>'
+      : '';
+
+  let html = `
+    <table>
+      <thead>
+        <tr>${colsComum}${extraHeaders}</tr>
+      </thead>
+      <tbody>`;
+
+  rows.forEach(p => {
+    const imgSrc = p.imagem
+      ? `https://borbulhas-de-cacau.web.app/${p.imagem}`
+      : '';
+    const imgTag = imgSrc
+      ? `<img src="${imgSrc}" alt="" loading="lazy" onerror="this.style.display='none'">`
+      : '—';
+
+    const destaque = (p.destaque === true || p.destaque === 'TRUE' || p.destaque === 'true')
+      ? '<span class="badge badge-star">⭐ Destaque</span>'
+      : '';
+
+    let extra = '';
+    if (currentCat === 'vinhos' || p.categoria === 'vinhos') {
+      extra = `<td>${p.uva || '—'}</td><td>${p.safra || '—'}</td><td>${p.teor || '—'}</td>`;
+    } else if (currentCat !== 'todos') {
+      const alerg = Array.isArray(p.alergenos)
+        ? p.alergenos.join(', ')
+        : (p.alergenos || '—');
+      extra = `<td>${p.peso || '—'}</td><td>${p.cacau || '—'}</td><td>${alerg}</td>`;
+    }
+
+    html += `
+        <tr>
+          <td class="td-img">${imgTag}</td>
+          <td class="td-nome">
+            <strong>${esc(p.nome || '—')}</strong>
+            <small>${esc(p.id || '')}</small>
+          </td>
+          <td><span class="badge badge-sub">${esc(p.subcategoria || '—')}</span></td>
+          <td class="td-price">${fmtPrice(p.preco)}</td>
+          <td>${destaque}</td>
+          ${extra}
+        </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById('table-wrap').innerHTML = html;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ---------------------------------------------------------------------------
+// Loading / error states
+// ---------------------------------------------------------------------------
+function setLoading() {
+  document.getElementById('table-wrap').innerHTML = `
+    <div class="state-box">
+      <div class="spinner"></div>
+      <p>Carregando produtos da planilha…</p>
+    </div>`;
+}
+
+function setError(msg) {
+  document.getElementById('table-wrap').innerHTML = `
+    <div class="state-box">
+      <div class="icon">⚠️</div>
+      <p><strong>Erro ao carregar:</strong> ${esc(msg)}</p>
+      <p style="margin-top:.5rem;font-size:.8rem;">Verifique se o ID está correto e a planilha é pública.</p>
+    </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Sync via GitHub Actions workflow_dispatch
+// ---------------------------------------------------------------------------
+async function triggerSync() {
+  const token = getGhToken();
+  if (!token) {
+    toast('Configure o GitHub Token para disparar o sync.', 'error');
+    document.getElementById('inp-token').focus();
+    return;
+  }
+
+  const btn = document.getElementById('btn-sync');
+  btn.disabled = true;
+  btn.textContent = '⟳ Sincronizando…';
+  setSyncStatus('running', '⟳ Disparando workflow…');
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW}/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main' }),
+      }
+    );
+
+    if (res.status === 204) {
+      setSyncStatus('ok', '✔ Workflow disparado');
+      toast('Sync iniciado! Os arquivos serão atualizados em ~1 min.', 'success');
+      // Recarrega após 90s para mostrar dados novos
+      setTimeout(() => loadProducts(), 90_000);
+    } else {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error(err.message);
+    }
+  } catch (err) {
+    setSyncStatus('fail', '✘ Erro no sync');
+    toast(`Erro: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⟳ Sincronizar';
+  }
+}
+
+function setSyncStatus(type, text) {
+  const el = document.getElementById('sync-status');
+  el.className = type;
+  el.textContent = text;
+}
+
+// ---------------------------------------------------------------------------
+// Toast
+// ---------------------------------------------------------------------------
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 4000);
+}
+
+// ---------------------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------------------
+loadConfig();
+if (getSheetId()) loadProducts();
+</script>
+</body>
+</html>
